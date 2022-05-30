@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
 from config import device
+from tools import regular_tensor
 
 
 class ImageFlow(pl.LightningModule):
@@ -29,7 +30,9 @@ class ImageFlow(pl.LightningModule):
         # Given a batch of images, return the latent representation z and ldj of the transformations
         z, ldj = imgs, torch.zeros((imgs.shape[0],), device=self.device)
         for flow in self.flows:
+            assert self.device == device  # stays on GPU
             z, ldj = flow(z, ldj, reverse=False)
+            assert (regular_tensor(z) and regular_tensor(ldj))  # no nan/inf/extreme_float
         return z, ldj
 
     def _get_likelihood(self, imgs, return_ll=False):
@@ -59,8 +62,11 @@ class ImageFlow(pl.LightningModule):
 
         # Transform z to x by inverting the flows
         ldj = torch.zeros(sample_shape[0], device=device)
+        self.to(device)  # sample is not called by pl.trainer, so device should be handled manually.
         for flow in reversed(self.flows):
+            assert self.device == device  # stays on GPU
             z, ldj = flow(z, ldj, reverse=True)
+            assert (regular_tensor(z) and regular_tensor(ldj))  # no nan/inf/extreme_float
         return z
 
     def configure_optimizers(self):

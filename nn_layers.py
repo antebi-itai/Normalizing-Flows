@@ -49,7 +49,6 @@ class GatedConv(nn.Module):
 
     def forward(self, x):
         out = self.net(x)
-        assert not (out.isinf().any() or out.isnan().any()), "Running on bad server"
         val, gate = out.chunk(2, dim=1)
         return x + val * torch.sigmoid(gate)
 

@@ -17,7 +17,7 @@ matplotlib_inline.backend_inline.set_matplotlib_formats('svg', 'pdf')
 matplotlib.rcParams['lines.linewidth'] = 2.0
 sns.reset_orig()
 # Ensure that all operations are deterministic on GPU (if used) for reproducibility
-torch.backends.cudnn.determinstic = True
+torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 # Setting the seed
 pl.seed_everything(42)
@@ -31,10 +31,10 @@ def main():
     train_set, val_set, test_set, train_loader, val_loader, test_loader = get_dataset_loaders()
 
     # build network
-    net, sample_shape_factor = create_flow(model_name=model_name, device=device)
+    flow, sample_shape_factor = create_flow(model_name=model_name, device=device)
 
     # train network on dataset
-    flow, result = train_flow(flow=net, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader,
+    flow, result = train_flow(flow=flow, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader,
                               model_name=model_name, pretrained=pretrained)
 
     # save newly trained model

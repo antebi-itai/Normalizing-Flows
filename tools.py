@@ -3,6 +3,7 @@ import torchvision
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from math import log10, floor
 
 
 # Plotting images
@@ -98,3 +99,32 @@ def interpolate(model, img1, img2, num_steps=8):
     interpolations = z[0:1] * alpha + z[1:2] * (1 - alpha)
     interp_imgs = model.sample(interpolations.shape[:1] + imgs.shape[1:], z_init=interpolations)
     show_imgs(interp_imgs, row_size=8)
+
+
+def round_to_n(x, n=2):
+    if x == 0:
+        return 0
+    return round(x, -int(floor(log10(abs(x)))) + (n - 1))
+
+
+def tensor_limits(tensor):
+    return round_to_n(tensor.min().item()), \
+           round_to_n(tensor.max().item()), \
+           round_to_n(tensor.abs().min().item()), \
+           round_to_n(tensor.abs().max().item())
+
+
+def regular_tensor(tensor):
+    if tensor.isinf().all():
+        print("Tensor has only INFs")
+    elif tensor.isnan().all():
+        print("Tensor has only NANs")
+    elif (tensor == torch.finfo(tensor.dtype).min).all():
+        print(f"Tensor has only MIN {tensor.dtype}: {round_to_n(torch.finfo(tensor.dtype).min)}")
+    elif (tensor == torch.finfo(tensor.dtype).max).all():
+        print(f"Tensor has only MAX {tensor.dtype}: {round_to_n(torch.finfo(tensor.dtype).max)}")
+    reg_tensor = not (tensor.isinf().any() or
+                      tensor.isnan().any() or
+                      (tensor == torch.finfo(tensor.dtype).min).any() or
+                      (tensor == torch.finfo(tensor.dtype).max).any())
+    return reg_tensor

@@ -26,8 +26,7 @@ def get_dataset_loaders():
     # We define a set of data loaders that we can use for various purposes later.
     # Note that for actually training a model, we will use different data loaders
     # with a lower batch size.
-    #train_loader = data.DataLoader(train_set, batch_size=256, shuffle=False, drop_last=False)
-    train_loader = data.DataLoader(train_set, batch_size=32, shuffle=True, drop_last=True, pin_memory=True, num_workers=8)
+    train_loader = data.DataLoader(train_set, batch_size=128, shuffle=True, drop_last=False, num_workers=8)
     val_loader = data.DataLoader(val_set, batch_size=64, shuffle=False, drop_last=False, num_workers=4)
     test_loader = data.DataLoader(test_set, batch_size=64, shuffle=False, drop_last=False, num_workers=4)
     print("Done Loading Dataset!")
