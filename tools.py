@@ -115,16 +115,26 @@ def tensor_limits(tensor):
 
 
 def regular_tensor(tensor):
+    info_func = torch.finfo if tensor.is_floating_point() else torch.iinfo
+
     if tensor.isinf().all():
         print("Tensor has only INFs")
     elif tensor.isnan().all():
         print("Tensor has only NANs")
-    elif (tensor == torch.finfo(tensor.dtype).min).all():
-        print(f"Tensor has only MIN {tensor.dtype}: {round_to_n(torch.finfo(tensor.dtype).min)}")
-    elif (tensor == torch.finfo(tensor.dtype).max).all():
-        print(f"Tensor has only MAX {tensor.dtype}: {round_to_n(torch.finfo(tensor.dtype).max)}")
+    elif (tensor == info_func(tensor.dtype).min).all():
+        print(f"Tensor has only MIN {tensor.dtype}: {round_to_n(info_func(tensor.dtype).min)}")
+    elif (tensor == info_func(tensor.dtype).max).all():
+        print(f"Tensor has only MAX {tensor.dtype}: {round_to_n(info_func(tensor.dtype).max)}")
+
     reg_tensor = not (tensor.isinf().any() or
                       tensor.isnan().any() or
-                      (tensor == torch.finfo(tensor.dtype).min).any() or
-                      (tensor == torch.finfo(tensor.dtype).max).any())
+                      (tensor == info_func(tensor.dtype).min).any() or
+                      (tensor == info_func(tensor.dtype).max).any())
     return reg_tensor
+
+
+def print_result(result):
+    print(f"Loaded Result! \n"
+          f"Test: {round_to_n(result['test'][0]['test_bpd'], n=3)} \t"
+          f"Val:  {round_to_n(result['val'][0]['test_bpd'], n=3)} \t "
+          f"Time: {round_to_n(result['time'], n=3)}")

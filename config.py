@@ -10,12 +10,13 @@ PL_TRAINER_PATH = "./pl_trainer"
 PRETRAINED_MODELS_BASE_URL = "https://raw.githubusercontent.com/phlippe/saved_models/main/tutorial11/"  # Github URL where saved models are stored for this tutorial
 PRETRAINED_MODELS_FILES = ["MNISTFlow_simple.ckpt", "MNISTFlow_vardeq.ckpt", "MNISTFlow_multiscale.ckpt"]  # Files to download
 
-## Train
-epochs = 3
-
 ## Model
-model_name = "MNISTFlow_vardeq"  # MNISTFlow_simple / MNISTFlow_vardeq / MNISTFlow_multiscale
-pretrained = False  # load a pretrained model if exists
-trained_filepath = os.path.join(CHECKPOINT_PATH, model_name + ("" if pretrained else f"_{epochs}_epochs") + ".ckpt")
+model_name = "MNISTFlow_multiscale"  # MNISTFlow_simple / MNISTFlow_vardeq / MNISTFlow_multiscale
+train = False
+use_web_weights = False
+assert not (train and use_web_weights), "Training and Using the web weights are mutually exclusive"
+epochs = 200
+trained_filepath = os.path.join(CHECKPOINT_PATH, model_name +
+                                ("" if use_web_weights else f"_<{epochs}_epochs>") + ".ckpt")
 
 num_samples_to_show = 10

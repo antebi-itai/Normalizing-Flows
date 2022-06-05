@@ -4,7 +4,7 @@ import os
 from config import CHECKPOINT_PATH, PRETRAINED_MODELS_BASE_URL, PRETRAINED_MODELS_FILES
 
 
-def download_pretrained_models():
+def download_web_weights():
     # Create checkpoint path if it doesn't exist yet
     os.makedirs(CHECKPOINT_PATH, exist_ok=True)
     # For each file, check whether it already exists. If not, try downloading it.
