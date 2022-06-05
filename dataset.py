@@ -3,7 +3,16 @@ import torch.utils.data as data
 from torchvision import transforms
 from torchvision.datasets import MNIST
 import pytorch_lightning as pl
-from config import DATASET_PATH
+from ResizeRight.resize_right import resize
+from config import DATASET_PATH, size
+
+
+# Return a transform that resizes the image to shape [1, size, size]
+def get_resize_transform(out_size):
+    def resize_transform(tensor_image):
+        assert tensor_image.shape == torch.Size([1, 28, 28])
+        return resize(input=tensor_image, scale_factors=out_size / 28, out_shape=[1, out_size, out_size]).clip(min=0, max=1)
+    return resize_transform
 
 
 # Convert images from 0-1 to 0-255 (integers)
@@ -14,6 +23,7 @@ def discretize(sample):
 def get_dataset_loaders():
     # Transformations applied on each image => make them a tensor and discretize
     transform = transforms.Compose([transforms.ToTensor(),
+                                    get_resize_transform(out_size=size),
                                     discretize])
 
     # Loading the training dataset. We need to split it into a training and validation part

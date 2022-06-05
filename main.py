@@ -4,7 +4,7 @@ import matplotlib
 import seaborn as sns
 import torch
 import pytorch_lightning as pl
-from config import device, model_name, train, trained_filepath, num_samples_to_show
+from config import device, model_name, train, trained_filepath, num_samples_to_show, size
 from pretrained_models import download_web_weights
 from dataset import get_dataset_loaders
 from network import create_flow
@@ -31,7 +31,7 @@ def main():
     train_set, val_set, test_set, train_loader, val_loader, test_loader = get_dataset_loaders()
 
     # build network
-    flow, sample_shape_factor = create_flow(model_name=model_name, device=device)
+    flow, sample_shape_factor = create_flow(model_name=model_name, device=device, size=size)
 
     if train:
         # train network on dataset
