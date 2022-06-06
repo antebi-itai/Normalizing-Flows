@@ -3,15 +3,14 @@ import time
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
-from config import PL_TRAINER_PATH, trained_filepath, epochs
 
 
-def train_flow(flow, train_loader, val_loader, test_loader, model_name="MNISTFlow"):
-    print(f"Starting to train model {model_name} for {epochs} epochs...")
+def train_flow(flow, train_loader, val_loader, test_loader, config):
+    print(f"Starting to train model {config.model_name} for {config.epochs} epochs...")
     # Create a PyTorch Lightning trainer
-    trainer = pl.Trainer(default_root_dir=os.path.join(PL_TRAINER_PATH, model_name),
+    trainer = pl.Trainer(default_root_dir=config.log_dir,
                          gpus=1,
-                         max_epochs=epochs,
+                         max_epochs=config.epochs,
                          gradient_clip_val=1.0,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode="min", monitor="val_bpd"),
                                     LearningRateMonitor("epoch")])
@@ -33,10 +32,10 @@ def train_flow(flow, train_loader, val_loader, test_loader, model_name="MNISTFlo
     return flow, result
 
 
-def load_flow(flow):
-    print(f"Loading model from {trained_filepath}...")
-    assert os.path.isfile(trained_filepath), f"Model file {trained_filepath} not found"
-    ckpt = torch.load(trained_filepath)
+def load_flow(flow, config):
+    print(f"Loading model from {config.trained_filepath}...")
+    assert os.path.isfile(config.trained_filepath), f"Model file {config.trained_filepath} not found"
+    ckpt = torch.load(config.trained_filepath)
     flow.load_state_dict(ckpt['state_dict'])
     result = ckpt.get("result", None)
     assert result is not None

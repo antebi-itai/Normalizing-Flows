@@ -3,13 +3,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
-from config import device
 from tools import regular_tensor
 
 
 class ImageFlow(pl.LightningModule):
 
-    def __init__(self, flows, import_samples=8):
+    def __init__(self, flows, config, import_samples=8):
         """
         Inputs:
             flows - A list of flows (each a nn.Module) that should be applied on the images.
@@ -17,6 +16,7 @@ class ImageFlow(pl.LightningModule):
                              Can be changed at any time
         """
         super().__init__()
+        self.config = config
         self.flows = nn.ModuleList(flows)
         self.import_samples = import_samples
         # Create prior distribution for final latent space
@@ -30,7 +30,7 @@ class ImageFlow(pl.LightningModule):
         # Given a batch of images, return the latent representation z and ldj of the transformations
         z, ldj = imgs, torch.zeros((imgs.shape[0],), device=self.device)
         for flow in self.flows:
-            assert self.device == device  # stays on GPU
+            assert self.device == self.config.device  # stays on GPU
             z, ldj = flow(z, ldj, reverse=False)
             assert (regular_tensor(z) and regular_tensor(ldj))  # no nan/inf/extreme_float
         return z, ldj
@@ -56,15 +56,15 @@ class ImageFlow(pl.LightningModule):
         """
         # Sample latent representation from prior
         if z_init is None:
-            z = self.prior.sample(sample_shape=sample_shape).to(device)
+            z = self.prior.sample(sample_shape=sample_shape).to(self.config.device)
         else:
-            z = z_init.to(device)
+            z = z_init.to(self.config.device)
 
         # Transform z to x by inverting the flows
-        ldj = torch.zeros(sample_shape[0], device=device)
-        self.to(device)  # sample is not called by pl.trainer, so device should be handled manually.
+        ldj = torch.zeros(sample_shape[0], device=self.config.device)
+        self.to(self.config.device)  # sample is not called by pl.trainer, so device should be handled manually.
         for flow in reversed(self.flows):
-            assert self.device == device  # stays on GPU
+            assert self.device == self.config.device  # stays on GPU
             z, ldj = flow(z, ldj, reverse=True)
             assert (regular_tensor(z) and regular_tensor(ldj))  # no nan/inf/extreme_float
         return z

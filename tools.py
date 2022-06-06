@@ -1,3 +1,4 @@
+import os
 import torch
 import torchvision
 import numpy as np
@@ -9,7 +10,7 @@ from math import log10, floor
 # Plotting images
 
 
-def show_imgs(imgs, title=None, row_size=4):
+def show_imgs(imgs, title=None, row_size=4, save_fig_path=None):
     # Form a grid of pictures (we use max. 8 columns)
     num_imgs = imgs.shape[0] if isinstance(imgs, torch.Tensor) else len(imgs)
     is_int = imgs.dtype == torch.int32 if isinstance(imgs, torch.Tensor) else imgs[0].dtype == torch.int32
@@ -23,15 +24,17 @@ def show_imgs(imgs, title=None, row_size=4):
     plt.axis('off')
     if title is not None:
         plt.title(title)
+    if save_fig_path is not None:
+        plt.savefig(save_fig_path)
     plt.show()
     plt.close()
 
 
-def show_samples(flow, img_shape, sample_shape_factor, num_samples_to_show):
+def show_samples(flow, img_shape, sample_shape_factor, num_samples_to_show, save_fig_path=None):
     batched_img_shape = torch.cat((torch.tensor([num_samples_to_show]), torch.tensor(img_shape)))
     sample_shape = torch.Size((batched_img_shape * sample_shape_factor).int())
     samples = flow.sample(sample_shape=sample_shape).cpu()
-    show_imgs(samples.cpu(), row_size=num_samples_to_show)
+    show_imgs(samples.cpu(), row_size=num_samples_to_show, save_fig_path=save_fig_path)
 
 
 # Plotting histogram
@@ -138,3 +141,12 @@ def print_result(result):
           f"Test: {round_to_n(result['test'][0]['test_bpd'], n=3)} \t"
           f"Val:  {round_to_n(result['val'][0]['test_bpd'], n=3)} \t "
           f"Time: {round_to_n(result['time'], n=3)}")
+
+
+def make_cuda_visible(gpu_num=0):
+    if os.environ['CUDA_VISIBLE_DEVICES'] == '':
+        print(f"Running from pycharm... ", end="")
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_num)
+    else:
+        print(f"Running from shell... ", end="")
+    print(f"GPU #{os.environ['CUDA_VISIBLE_DEVICES']}")

@@ -4,15 +4,15 @@ import matplotlib
 import seaborn as sns
 import torch
 import pytorch_lightning as pl
-from config import device, model_name, train, trained_filepath, num_samples_to_show, size
+from config import config
 from pretrained_models import download_web_weights
 from dataset import get_dataset_loaders
 from network import create_flow
 from train import train_flow, load_flow
-from tools import show_samples, print_result
+from tools import show_samples, print_result, make_cuda_visible
 print("Done Importing!")
 
-# CONFIGURATIONS
+# Environment Settings
 matplotlib_inline.backend_inline.set_matplotlib_formats('svg', 'pdf')
 matplotlib.rcParams['lines.linewidth'] = 2.0
 sns.reset_orig()
@@ -21,33 +21,36 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 # Setting the seed
 pl.seed_everything(42)
+# GPU
+make_cuda_visible(gpu_num=config.gpu_num)
 
 
 def main():
     # download weights from the web
-    download_web_weights()
+    download_web_weights(config=config)
 
     # load MNIST datasets and data-loaders
-    train_set, val_set, test_set, train_loader, val_loader, test_loader = get_dataset_loaders()
+    train_set, val_set, test_set, train_loader, val_loader, test_loader = get_dataset_loaders(config=config)
 
     # build network
-    flow, sample_shape_factor = create_flow(model_name=model_name, device=device, size=size)
+    flow, sample_shape_factor = create_flow(config=config)
 
-    if train:
+    if config.train:
         # train network on dataset
-        flow, result = train_flow(flow=flow, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader, model_name=model_name)
+        flow, result = train_flow(flow=flow, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader, config=config)
 
         # save newly trained model
-        torch.save({'state_dict': flow.state_dict(), 'result': result}, trained_filepath)
-        print(f"Done Saving Network to {trained_filepath}!")
+        torch.save({'state_dict': flow.state_dict(), 'result': result}, config.trained_filepath)
+        print(f"Done Saving Network to {config.trained_filepath}!")
 
     else:
         # load network weights
-        flow, result = load_flow(flow)
+        flow, result = load_flow(flow=flow, config=config)
         print_result(result)
 
         # show some samples of the flow
-        show_samples(flow=flow, img_shape=test_set[0][0].shape, sample_shape_factor=sample_shape_factor, num_samples_to_show=num_samples_to_show)
+        show_samples(flow=flow, img_shape=test_set[0][0].shape, sample_shape_factor=sample_shape_factor,
+                     num_samples_to_show=config.num_samples_to_show, save_fig_path=config.results_filepath)
 
     print("Done Main!")
 
