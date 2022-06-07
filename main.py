@@ -5,8 +5,7 @@ import seaborn as sns
 import torch
 import pytorch_lightning as pl
 from config import config
-from pretrained_models import download_web_weights
-from dataset import get_dataset_loaders
+from dataset import get_data
 from network import create_flow
 from train import train_flow, load_flow
 from tools import show_samples, print_result, make_cuda_visible
@@ -26,11 +25,8 @@ make_cuda_visible(gpu_num=config.gpu_num)
 
 
 def main():
-    # download weights from the web
-    download_web_weights(config=config)
-
-    # load MNIST datasets and data-loaders
-    train_set, val_set, test_set, train_loader, val_loader, test_loader = get_dataset_loaders(config=config)
+    # load datasets and data-loaders
+    train_set, val_set, test_set, train_loader, val_loader, test_loader = get_data(config=config)
 
     # build network
     flow, sample_shape_factor = create_flow(config=config)

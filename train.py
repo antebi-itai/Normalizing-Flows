@@ -6,7 +6,8 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 
 def train_flow(flow, train_loader, val_loader, test_loader, config):
-    print(f"Starting to train model {config.model_name} for {config.epochs} epochs...")
+    print(f"Starting to train model {config.model_name} on dataset {config.dataset} "
+          f"size {config.size} for {config.epochs} epochs...")
     # Create a PyTorch Lightning trainer
     trainer = pl.Trainer(default_root_dir=config.log_dir,
                          gpus=1,
