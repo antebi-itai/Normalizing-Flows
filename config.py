@@ -21,7 +21,7 @@ config_dict = {
     # Model
     'train': True,
     'size': 10,  # 5 / 10 / 28
-    'model_name': "vardeq",  # simple / vardeq / multiscale
+    'model_name': "long",  # simple / vardeq / long / linear / multiscale
     'epochs': 5,  # 5 / 200
 
     # Sample
@@ -39,3 +39,13 @@ config.unique_filename = f"{config.dataset}_{config.model_name}_size_{config.siz
 config.trained_filepath = os.path.join(config.CHECKPOINT_PATH, config.unique_filename + ".ckpt")
 config.results_filepath = os.path.join(config.RESULTS_PATH, config.unique_filename + ".png")
 config.c = 1 if config.dataset == "MNIST" else 3  # input data's number of channels
+
+
+def print_running_config(config, print_keys=('dataset', 'train', 'size', 'model_name', 'epochs')):
+    print()
+    print("="*20 + "  CONFIG  " + "="*20)
+    max_len_key = max([len(key) for key in print_keys])
+    for key in print_keys:
+        print(f"{key}:{' '*(max_len_key + 2 - len(key))}{config.__dict__[key]}")
+    print("=" * 50)
+    print()

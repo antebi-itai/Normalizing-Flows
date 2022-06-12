@@ -2,22 +2,80 @@ import torch
 from flow_template import ImageFlow
 from flow_dequantization import Dequantization, VariationalDequantization
 from flow_models import CouplingLayer, SqueezeFlow, SplitFlow
-from nn_layers import GatedConvNet
+from nn_layers import GatedConvNet, GatedLinearNet
 from tools import create_checkerboard_mask, create_channel_mask
 
 
-def create_simple_flow(config, use_vardeq=True):
+def create_simple_flow(config):
+    """
+    Dequantization + 8 * CouplingLayer(GatedConvNet)
+    """
     flow_layers = []
-    if use_vardeq:
-        vardeq_layers = [CouplingLayer(network=GatedConvNet(c_in=2*config.c, c_out=2*config.c, c_hidden=16),
-                                       mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
-                                       c_in=1*config.c) for i in range(4)]
-        flow_layers += [VariationalDequantization(var_flows=vardeq_layers)]
-    else:
-        flow_layers += [Dequantization()]
+    flow_layers += [Dequantization()]
 
     for i in range(8):
         flow_layers += [CouplingLayer(network=GatedConvNet(c_in=1*config.c, c_hidden=32),
+                                      mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
+                                      c_in=1*config.c)]
+
+    flow_model = ImageFlow(flow_layers, config=config)
+    sample_shape_factor = torch.tensor([1, 1, 1, 1])
+    return flow_model, sample_shape_factor
+
+
+def create_vardeq_flow(config):
+    """
+    Variational Dequantization + 8 * CouplingLayer(GatedConvNet)
+    """
+    flow_layers = []
+    vardeq_layers = [CouplingLayer(network=GatedConvNet(c_in=2*config.c, c_out=2*config.c, c_hidden=16),
+                                   mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
+                                   c_in=1*config.c) for i in range(4)]
+    flow_layers += [VariationalDequantization(var_flows=vardeq_layers)]
+
+    for i in range(8):
+        flow_layers += [CouplingLayer(network=GatedConvNet(c_in=1*config.c, c_hidden=32),
+                                      mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
+                                      c_in=1*config.c)]
+
+    flow_model = ImageFlow(flow_layers, config=config)
+    sample_shape_factor = torch.tensor([1, 1, 1, 1])
+    return flow_model, sample_shape_factor
+
+
+def create_long_flow(config):
+    """
+    Variational Dequantization + 15 * CouplingLayer(GatedConvNet)
+    """
+    flow_layers = []
+    vardeq_layers = [CouplingLayer(network=GatedConvNet(c_in=2*config.c, c_out=2*config.c, c_hidden=16),
+                                   mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
+                                   c_in=1*config.c) for i in range(4)]
+    flow_layers += [VariationalDequantization(var_flows=vardeq_layers)]
+
+    for i in range(15):
+        flow_layers += [CouplingLayer(network=GatedConvNet(c_in=1*config.c, c_hidden=32),
+                                      mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
+                                      c_in=1*config.c)]
+
+    flow_model = ImageFlow(flow_layers, config=config)
+    sample_shape_factor = torch.tensor([1, 1, 1, 1])
+    return flow_model, sample_shape_factor
+
+
+def create_linear_flow(config):
+    """
+    Variational Dequantization + 8 * CouplingLayer(GatedLinearNet)
+    """
+    flow_layers = []
+    vardeq_layers = [CouplingLayer(network=GatedConvNet(c_in=2*config.c, c_out=2*config.c, c_hidden=16),
+                                   mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
+                                   c_in=1*config.c) for i in range(4)]
+    flow_layers += [VariationalDequantization(var_flows=vardeq_layers)]
+
+    num_features = config.c * config.size * config.size
+    for i in range(8):
+        flow_layers += [CouplingLayer(network=GatedLinearNet(in_features=num_features),
                                       mask=create_checkerboard_mask(h=config.size, w=config.size, invert=(i % 2 == 1)),
                                       c_in=1*config.c)]
 
@@ -71,14 +129,11 @@ def create_multiscale_flow(config):
 
 
 def create_flow(config):
-    if config.model_name == "simple":
-        net, sample_shape_factor = create_simple_flow(config=config, use_vardeq=False)
-    elif config.model_name == "vardeq":
-        net, sample_shape_factor = create_simple_flow(config=config, use_vardeq=True)
-    elif config.model_name == "multiscale":
-        net, sample_shape_factor = create_multiscale_flow(config=config)
-    else:
-        raise NotImplementedError(f"Unknown model: {config.model_name}")
+    create_flow_func = eval(f"create_{config.model_name}_flow")
+    try:
+        net, sample_shape_factor = create_flow_func(config=config)
+    except NameError:
+        raise NameError(f"Unknown model: {config.model_name}")
 
     net = net.to(device=config.device)
     print(f"Done Creating Network! (model: {config.model_name})")

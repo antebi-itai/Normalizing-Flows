@@ -80,3 +80,52 @@ class GatedConvNet(nn.Module):
 
     def forward(self, x):
         return self.nn(x)
+
+
+class GatedLinear(nn.Module):
+
+    def __init__(self, in_features):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_features=in_features, out_features=in_features),
+            ConcatELU(),
+            nn.Linear(in_features=2*in_features, out_features=2*in_features)
+        )
+
+    def forward(self, x):
+        out = self.net(x)
+        val, gate = out.chunk(2, dim=1)
+        return x + val * torch.sigmoid(gate)
+
+
+class GatedLinearNet(nn.Module):
+
+    def __init__(self, in_features, num_layers=3):
+        """
+        Module that summarizes the previous blocks to a full convolutional neural network.
+        Inputs:
+            c_in - Number of input channels
+            c_hidden - Number of hidden dimensions to use within the network
+            c_out - Number of output channels. If -1, 2 times the input channels are used (affine coupling)
+            num_layers - Number of gated ResNet blocks to apply
+        """
+        super().__init__()
+        layers = []
+        layers += [nn.Linear(in_features=in_features, out_features=in_features)]
+        for layer_index in range(num_layers):
+            layers += [GatedLinear(in_features),
+                       nn.LayerNorm(in_features)]
+        layers += [ConcatELU(),
+                   nn.Linear(in_features=2*in_features, out_features=2*in_features)]
+        self.nn = nn.Sequential(*layers)
+
+        self.nn[-1].weight.data.zero_()
+        self.nn[-1].bias.data.zero_()
+
+    def forward(self, x):
+        b, c, h, w = x.shape
+
+        out = torch.flatten(x, start_dim=1)
+        out = self.nn(out)
+        out = torch.reshape(out, [b, 2*c, h, w])
+        return out

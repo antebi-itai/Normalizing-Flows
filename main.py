@@ -4,7 +4,7 @@ import matplotlib
 import seaborn as sns
 import torch
 import pytorch_lightning as pl
-from config import config
+from config import config, print_running_config
 from dataset import get_data
 from network import create_flow
 from train import train_flow, load_flow
@@ -25,6 +25,9 @@ make_cuda_visible(gpu_num=config.gpu_num)
 
 
 def main():
+    # print running config
+    print_running_config(config=config)
+
     # load datasets and data-loaders
     train_set, val_set, test_set, train_loader, val_loader, test_loader = get_data(config=config)
 
