@@ -1,5 +1,6 @@
 __pycache__/
 saved_models/
-pl_trainer/
+wandb/
+Normalizing_Flows/
 .test_gpus.py
 .log_vardeq.log

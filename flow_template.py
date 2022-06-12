@@ -30,7 +30,7 @@ class ImageFlow(pl.LightningModule):
         # Given a batch of images, return the latent representation z and ldj of the transformations
         z, ldj = imgs, torch.zeros((imgs.shape[0],), device=self.device)
         for flow in self.flows:
-            assert self.device == self.config.device  # stays on GPU
+            assert self.device == torch.device(self.config.device)  # stays on GPU
             z, ldj = flow(z, ldj, reverse=False)
             assert (regular_tensor(z) and regular_tensor(ldj))  # no nan/inf/extreme_float
         return z, ldj
@@ -64,7 +64,7 @@ class ImageFlow(pl.LightningModule):
         ldj = torch.zeros(sample_shape[0], device=self.config.device)
         self.to(self.config.device)  # sample is not called by pl.trainer, so device should be handled manually.
         for flow in reversed(self.flows):
-            assert self.device == self.config.device  # stays on GPU
+            assert self.device == torch.device(self.config.device)  # stays on GPU
             z, ldj = flow(z, ldj, reverse=True)
             assert (regular_tensor(z) and regular_tensor(ldj))  # no nan/inf/extreme_float
         return z
