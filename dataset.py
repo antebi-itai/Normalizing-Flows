@@ -45,7 +45,7 @@ def get_mnist_datasets(config):
 
 
 def get_positional_encoding_image():
-    (x, y) = torch.meshgrid(torch.linspace(0, 1, 256), torch.linspace(0, 1, 256))
+    (x, y) = torch.meshgrid(torch.linspace(0, 1, 256), torch.linspace(0, 1, 256), indexing="xy")
     red = 0.5 + 0.5 * torch.sin(75 * torch.pi * ((x - 0.5).pow(2) + (y - 0.5).pow(2)))  # circles around center
     green = torch.linspace(0, 1, 256).view(1, -1).repeat(256, 1)  # x
     blue = torch.linspace(0, 1, 256).view(-1, 1).repeat(1, 256)  # y

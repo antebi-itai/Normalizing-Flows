@@ -13,7 +13,7 @@ config_dict = {
     'DATA_IMAGES_PATH': "/home/itaian/data/images/Normalizing_Flow",
     'RESULTS_PATH': "/home/itaian/data/results/NF_tutorial",
     'CHECKPOINT_PATH': "./saved_models",  # Path to the folder where the pretrained models are saved
-    'PL_TRAINER_PATH': "./pl_trainer",
+    'PL_LOG_PATH': "./pl_trainer",
 
     # Data
     'dataset': "PEIP",  # MNIST / PEIP / <image_name> like NATURE / CHEETAH / ...
@@ -35,8 +35,7 @@ config_dict = {
 config = SimpleNamespace(**config_dict)
 
 # add config-dependent configurations
-unique_filename = f"{config.dataset}_{config.model_name}_size_{config.size}_epochs_{config.epochs}"
-config.trained_filepath = os.path.join(config.CHECKPOINT_PATH, unique_filename + ".ckpt")
-config.results_filepath = os.path.join(config.RESULTS_PATH, unique_filename + ".png")
-config.log_dir = os.path.join(config.PL_TRAINER_PATH, config.model_name)
+config.unique_filename = f"{config.dataset}_{config.model_name}_size_{config.size}_epochs_{config.epochs}"
+config.trained_filepath = os.path.join(config.CHECKPOINT_PATH, config.unique_filename + ".ckpt")
+config.results_filepath = os.path.join(config.RESULTS_PATH, config.unique_filename + ".png")
 config.c = 1 if config.dataset == "MNIST" else 3  # input data's number of channels

@@ -2,6 +2,7 @@ import os
 import time
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 
@@ -9,14 +10,13 @@ def train_flow(flow, train_loader, val_loader, test_loader, config):
     print(f"Starting to train model {config.model_name} on dataset {config.dataset} "
           f"size {config.size} for {config.epochs} epochs...")
     # Create a PyTorch Lightning trainer
-    trainer = pl.Trainer(default_root_dir=config.log_dir,
+    logger = pl_loggers.TensorBoardLogger(save_dir=config.PL_LOG_PATH, name=config.unique_filename)
+    trainer = pl.Trainer(logger=logger,
                          gpus=1,
                          max_epochs=config.epochs,
                          gradient_clip_val=1.0,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode="min", monitor="val_bpd"),
                                     LearningRateMonitor("epoch")])
-    trainer.logger._log_graph = True
-    trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
 
     # Train
     trainer.fit(flow, train_loader, val_loader)
