@@ -10,7 +10,7 @@ from math import log10, floor
 # Plotting images
 
 
-def show_imgs(imgs, title=None, row_size=4, save_fig_path=None):
+def imgs_to_plt(imgs, title=None, row_size=4):
     # Form a grid of pictures (we use max. 8 columns)
     num_imgs = imgs.shape[0] if isinstance(imgs, torch.Tensor) else len(imgs)
     is_int = imgs.dtype == torch.int32 if isinstance(imgs, torch.Tensor) else imgs[0].dtype == torch.int32
@@ -24,17 +24,24 @@ def show_imgs(imgs, title=None, row_size=4, save_fig_path=None):
     plt.axis('off')
     if title is not None:
         plt.title(title)
-    if save_fig_path is not None:
-        plt.savefig(save_fig_path)
-    plt.show()
-    plt.close()
 
 
-def show_samples(flow, img_shape, sample_shape_factor, num_samples_to_show, save_fig_path=None):
-    batched_img_shape = torch.cat((torch.tensor([num_samples_to_show]), torch.tensor(img_shape)))
+def sample_save_show(flow, img_shape, sample_shape_factor, config):
+    # sample
+    batched_img_shape = torch.cat((torch.tensor([config.num_samples]), torch.tensor(img_shape)))
     sample_shape = torch.Size((batched_img_shape * sample_shape_factor).int())
     samples = flow.sample(sample_shape=sample_shape).cpu()
-    show_imgs(samples.cpu(), row_size=num_samples_to_show, save_fig_path=save_fig_path)
+
+    # samples to plt
+    imgs_to_plt(imgs=samples, row_size=math.ceil(math.sqrt(config.num_samples)))
+    # save
+    if config.save_samples:
+        plt.savefig(config.results_filepath)
+        print(f"Figure saved to {config.results_filepath}")
+    # show
+    if config.show_samples:
+        plt.show()
+    plt.close()
 
 
 # Plotting histogram

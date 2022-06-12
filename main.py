@@ -8,7 +8,7 @@ from config import config
 from dataset import get_data
 from network import create_flow
 from train import train_flow, load_flow
-from tools import show_samples, print_result, make_cuda_visible
+from tools import sample_save_show, print_result, make_cuda_visible
 print("Done Importing!")
 
 # Environment Settings
@@ -42,11 +42,12 @@ def main():
     else:
         # load network weights
         flow, result = load_flow(flow=flow, config=config)
-        print_result(result)
 
-        # show some samples of the flow
-        show_samples(flow=flow, img_shape=test_set[0][0].shape, sample_shape_factor=sample_shape_factor,
-                     num_samples_to_show=config.num_samples_to_show, save_fig_path=config.results_filepath)
+    # print train, val and test bpd
+    print_result(result)
+
+    # save & show some samples of the flow
+    sample_save_show(flow=flow, img_shape=test_set[0][0].shape, sample_shape_factor=sample_shape_factor, config=config)
 
     print("Done Main!")
 

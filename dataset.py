@@ -4,7 +4,9 @@ import torch.nn.functional as F
 from torchvision import transforms
 from torchvision.datasets import MNIST
 import pytorch_lightning as pl
+import os
 from ResizeRight.resize_right import resize
+from images import imread
 
 
 ############################## MNIST ##############################
@@ -93,7 +95,10 @@ def get_data(config):
         image = get_positional_encoding_image()
         train_set, val_set, test_set = get_patches_dataset(image=image, config=config)
     else:
-        raise NotImplementedError(f"Unknown dataset {config.dataset}")
+        image_path = os.path.join(config.DATA_IMAGES_PATH, f"{config.dataset}.png")
+        assert os.path.isfile(image_path), f"Image file {image_path} not found"
+        image = imread(fname=image_path).squeeze()
+        train_set, val_set, test_set = get_patches_dataset(image=image, config=config)
 
     train_loader, val_loader, test_loader = get_data_loaders(train_set=train_set, val_set=val_set, test_set=test_set)
 

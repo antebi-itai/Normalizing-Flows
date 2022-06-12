@@ -10,12 +10,13 @@ config_dict = {
 
     # Paths / URLs
     'DATASET_PATH': "/home/itaian/group/datasets",  # Path to the folder where the datasets are/should be downloaded
+    'DATA_IMAGES_PATH': "/home/itaian/data/images/Normalizing_Flow",
     'RESULTS_PATH': "/home/itaian/data/results/NF_tutorial",
     'CHECKPOINT_PATH': "./saved_models",  # Path to the folder where the pretrained models are saved
     'PL_TRAINER_PATH': "./pl_trainer",
 
     # Data
-    'dataset': "PEIP",  # MNIST / PEIP
+    'dataset': "PEIP",  # MNIST / PEIP / <image_name> like NATURE / CHEETAH / ...
 
     # Model
     'train': True,
@@ -23,7 +24,10 @@ config_dict = {
     'model_name': "vardeq",  # simple / vardeq / multiscale
     'epochs': 5,  # 5 / 200
 
-    'num_samples_to_show': 10
+    # Sample
+    'num_samples': 64,
+    'save_samples': True,
+    'show_samples': False
 }
 
 
