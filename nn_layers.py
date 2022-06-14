@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from partialconv.models.partialconv2d import PartialConv2d
 
 
 class ConcatELU(nn.Module):
@@ -31,9 +32,12 @@ class LayerNormChannels(nn.Module):
         return x
 
 
+############################## GatedConvNet ##############################
+
+
 class GatedConv(nn.Module):
 
-    def __init__(self, c_in, c_hidden):
+    def __init__(self, c_in, c_hidden, partial_conv=False):
         """
         This module applies a two-layer convolutional ResNet block with input gate
         Inputs:
@@ -41,10 +45,11 @@ class GatedConv(nn.Module):
             c_hidden - Number of hidden dimensions we want to model (usually similar to c_in)
         """
         super().__init__()
+        conv_layer = nn.Conv2d if not partial_conv else PartialConv2d
         self.net = nn.Sequential(
-            nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
+            conv_layer(c_in, c_hidden, kernel_size=3, padding=1),
             ConcatELU(),
-            nn.Conv2d(2 * c_hidden, 2 * c_in, kernel_size=1)
+            conv_layer(2 * c_hidden, 2 * c_in, kernel_size=1)
         )
 
     def forward(self, x):
@@ -55,7 +60,7 @@ class GatedConv(nn.Module):
 
 class GatedConvNet(nn.Module):
 
-    def __init__(self, c_in, c_hidden=32, c_out=-1, num_layers=3):
+    def __init__(self, c_in, c_hidden=32, c_out=-1, num_layers=3, partial_conv=False):
         """
         Module that summarizes the previous blocks to a full convolutional neural network.
         Inputs:
@@ -65,14 +70,15 @@ class GatedConvNet(nn.Module):
             num_layers - Number of gated ResNet blocks to apply
         """
         super().__init__()
+        conv_layer = nn.Conv2d if not partial_conv else PartialConv2d
         c_out = c_out if c_out > 0 else 2 * c_in
         layers = []
-        layers += [nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1)]
+        layers += [conv_layer(c_in, c_hidden, kernel_size=3, padding=1)]
         for layer_index in range(num_layers):
-            layers += [GatedConv(c_hidden, c_hidden),
+            layers += [GatedConv(c_hidden, c_hidden, partial_conv=partial_conv),
                        LayerNormChannels(c_hidden)]
         layers += [ConcatELU(),
-                   nn.Conv2d(2 * c_hidden, c_out, kernel_size=3, padding=1)]
+                   conv_layer(2 * c_hidden, c_out, kernel_size=3, padding=1)]
         self.nn = nn.Sequential(*layers)
 
         self.nn[-1].weight.data.zero_()
@@ -80,6 +86,9 @@ class GatedConvNet(nn.Module):
 
     def forward(self, x):
         return self.nn(x)
+
+
+############################## GatedLinearNet ##############################
 
 
 class GatedLinear(nn.Module):

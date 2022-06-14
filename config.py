@@ -20,7 +20,7 @@ config_dict = {
     # Model
     'train': True,
     'size': 5,  # 5 / 10 / 28
-    'model_name': "vardeq",  # simple / vardeq / long / linear / multiscale
+    'model_name': "long",  # simple / vardeq / long / linear / partial_conv / multiscale
     'epochs': 5,  # 5 / 200
 
     # Sample

@@ -11,7 +11,6 @@ sweep_config = {
         # Data
         'dataset': {'values': ["NATURE", "CHEETAH", "PEIP"]},
         'size': {'values': [5, 10]},
-        'model_name': {'values': ['vardeq', 'long', 'linear']},
         'epochs': {'values': [5, 200]}
     }
 }
